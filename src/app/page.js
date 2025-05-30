@@ -1,5 +1,10 @@
 import Image from "next/image";
 import styles from "./page.module.css";
+import { NextDrupal } from "next-drupal"
+const drupal = new NextDrupal(process.env.NEXT_PUBLIC_DRUPAL_BASE_URL)
+
+console.log('NEXT_PUBLIC_DRUPAL_BASE_URL');
+console.log(process.env.NEXT_PUBLIC_DRUPAL_BASE_URL);
 
 export default function Home() {
   return (
