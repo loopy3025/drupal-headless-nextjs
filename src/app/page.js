@@ -1,100 +1,66 @@
+"use client"
+
 import Image from "next/image";
 import styles from "./page.module.css";
+import Link from 'next/link';
 import { NextDrupal } from "next-drupal"
 const drupal = new NextDrupal(process.env.NEXT_PUBLIC_DRUPAL_BASE_URL)
 
 console.log('NEXT_PUBLIC_DRUPAL_BASE_URL');
 console.log(process.env.NEXT_PUBLIC_DRUPAL_BASE_URL);
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useEffect, useState } from 'react';
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+export default async function Home() {
+  const localUri = "http://drupal-headless.docksal.ny.gov";
+  const endpoints = [
+    localUri + '/api/test',
+  ];
+
+  try {
+    // Fetch data from all endpoints concurrently
+    const responses = await Promise.all(endpoints.map(endpoint => fetch(endpoint)));
+
+    // Process the responses (e.g., parse JSON)
+    const data = await Promise.all(responses.map(async response => {
+      // Check if the response is successful and has a valid JSON body
+      if (!response.ok) {
+        console.error(`Error fetching data from ${response.url}: ${response.statusText}`);
+        return null; // Return null or an empty array for failed requests
+      }
+      return await response.json();
+    }));
+
+    // Filter out null or undefined responses and flatten the arrays
+    const combinedData = data.filter(item => item !== null && Array.isArray(item)).flat();
+
+    return (
+      <div>
+        <h1>Test Drupal -&gt; NextJS</h1>
+        <ul>
+          {combinedData.map((item, index) => (
+            <li key={index}>
+              {/* Ensure item.title and item.view_node exist */}
+              {item && typeof item.title === 'string' && item.view_node ? (
+                <Link 
+                  href={localUri + item.view_node}
+                  target="_blank"
+                >
+                  {item.title}
+                </Link>
+              ) : (
+                // Handle cases where data structure might be unexpected
+                <span>Invalid data structure or missing data</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    // You can render an error message or a fallback UI here
+    return <div>Error loading data. Please try again later.</div>;
+  }
 }

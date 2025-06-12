@@ -12,3 +12,15 @@ services:
         NEXT_PUBLIC_DRUPAL_BASE_URL: ${NEXT_PUBLIC_DRUPAL_BASE_URL}
     ports:
       - "3000:3000"
+  # web:
+  #   build: .
+  #   command: npm start
+  #   develop:
+  #     watch:
+  #       - action: sync
+  #         path: ./web
+  #         target: /src/web
+  #         ignore:
+  #           - node_modules/
+  #       - action: rebuild
+  #         path: package.json
